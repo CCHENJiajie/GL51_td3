@@ -2,7 +2,7 @@ package gl51.project.store
 
 class MemoryProductStorage implements  ProductStorage {
 
-	List<Product> productList = []
+	List<Product> productList = [] 
 	int id = 1
 	
     @Override
