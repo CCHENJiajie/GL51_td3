@@ -6,7 +6,7 @@ interface ProductStorage {
      * creates an new product in the store and return id
      * @param p the product to store
      */
-    int save(Product p)
+    String save(Product p)
 	
 
     /**
@@ -14,20 +14,20 @@ interface ProductStorage {
      * Beware the product id must be filled in
      * @param p the product to update
      */
-    void update(int id, Product p)
+    void update(String id, Product p)
 
     /**
      * get a product by its id
      * @param id
      * @return a product
      */
-    Product getByID(int id)
+    Product getByID(String id)
 
     /**
      * deletes a product by its id
      * @param id
      */
-    void delete(int id)
+    void delete(String id)
 
     /**
      * list all products
