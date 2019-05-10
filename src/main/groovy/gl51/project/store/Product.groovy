@@ -1,7 +1,7 @@
 package gl51.project.store
 
 class Product {
-    int id
+    String id
     String name
     String description
     double price

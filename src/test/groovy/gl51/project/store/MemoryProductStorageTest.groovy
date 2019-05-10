@@ -64,7 +64,7 @@ class MemoryProductStorageTest extends Specification {
 
      def "Throw a NotExistingProductException if we get the id which it doesn't exist"() {
         setup:
-        def id = -1
+        def id = myProduct.id
 
          when:
         store.getByID(id)
