@@ -2,14 +2,12 @@ package gl51.project.store
 
 class MemoryProductStorage implements  ProductStorage {
 
-	List<Product> productList = [] 
-	int id = 1
+	List<Product> productList = []
 	
     @Override
     int save(Product p) {
-		p.id = id
+		p.id = UUID.randomUUID().toString()
         productList.add(p)
-		id += 1
     	return p.id
     }
 
@@ -19,6 +17,7 @@ class MemoryProductStorage implements  ProductStorage {
         int indexOfProduct = productList.indexOf(product)
 
          productList.add(indexOfProduct,p)
+         productList.remove(indexOfProduct+1)
     }
 
     @Override

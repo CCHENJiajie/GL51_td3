@@ -10,6 +10,7 @@ import spock.lang.Specification
 class MemoryProductStorageTest extends Specification {
 
     ProductStorage store = new MemoryProductStorage()
+    Product myProduct = new Product(name: "myProduct")
 
  	    def "empty storage returns empty list"() {
         expect:
@@ -30,7 +31,6 @@ class MemoryProductStorageTest extends Specification {
 
      def "check if saving takes effect"() {
         setup:
-        Product myProduct = new Product(name: "myProduct")
         def id = store.save(myProduct)
 
          expect:
@@ -40,7 +40,6 @@ class MemoryProductStorageTest extends Specification {
 
      def "check if deleting takes effect"() {
         setup:
-        Product myProduct = new Product(name: "myProduct")
         def id = store.save(myProduct)
 
          when:
@@ -52,7 +51,6 @@ class MemoryProductStorageTest extends Specification {
 
      def "check if updating takes effect"() {
         setup:
-        Product myProduct = new Product(name: "myProduct")
         def id = store.save(myProduct)
 
          when:
@@ -77,7 +75,6 @@ class MemoryProductStorageTest extends Specification {
 
      def "get ID if it exist"() {
         setup:
-        Product myProduct = new Product(name: "myProduct")
         def id = store.save(myProduct)
 
          when:
