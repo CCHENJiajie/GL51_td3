@@ -2,17 +2,20 @@ package gl51.project.store
 
 class MemoryProductStorage implements  ProductStorage {
 
-	List<Product> productList = []
-	
+    //HashMap<String, String> productHashMap = new HashMap<>();
+    //TODO: HashMap  1.<id, Product> ? 2.<Product.key, Product.value>?
+    List<Product> products = []
+
     @Override
     String save(Product p) {
-		p.id = UUID.randomUUID().toString()
-        productList.add(p)
-    	return p.id
+        if(!p.id)
+            p.id = UUID.randomUUID().toString()
+        this.products.add(p)
+        return p.id
     }
 
     @Override
- 	void update(String id, Product p) {
+    void update(String id, Product p) {
         for(int i=0;i<products.size();i++)
         {
             if(products[i].id==id)
@@ -21,26 +24,25 @@ class MemoryProductStorage implements  ProductStorage {
                 products[i] = p
             }
         }
-	}
+    }
 
     @Override
     Product getByID(String id) {
-        def product = productList.find { it.id == id }
-        if(product == null)
-        {
-          throw new NotExistingProductException("The wanted product is not exist!")
+        for(int i=0;i<products.size();i++) {
+            if (products[i].id == id) {
+                return products[i]
+            }
         }
-        return product
+        throw new NotExistingProductException(" product does not exist !")
     }
 
     @Override
     void delete(String id) {
-        def product = getByID(id)
-        productList.remove(product)
-    }
+        products.remove(this.getByID(id))
+        }
 
     @Override
     List<Product> all() {
-        return productList
+        return products
     }
 }

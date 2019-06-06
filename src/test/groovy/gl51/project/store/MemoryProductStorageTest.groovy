@@ -1,88 +1,86 @@
 package gl51.project.store
 
-import io.micronaut.context.ApplicationContext
-import io.micronaut.runtime.server.EmbeddedServer
-import io.micronaut.http.client.RxHttpClient
-import spock.lang.AutoCleanup
-import spock.lang.Shared
 import spock.lang.Specification
 
 class MemoryProductStorageTest extends Specification {
 
     ProductStorage store = new MemoryProductStorage()
-    Product myProduct = new Product(name: "myProduct")
+    Product p = new Product(id: "1", name: "myproduct")
 
- 	    def "empty storage returns empty list"() {
-        expect:
-        store.all() == []
+    def "empty storage returns empty list"() {
+         expect:
+         store.all() ==  []
     }
 
-     def "check if adding takes effect"() {
+    def "adding a product returns the product in the list"() {
         setup:
-        store.save(new Product(name: "myProduct"))
+        store.save(new Product(name: "myproduct"))
 
-         when:
+        when:
         def all = store.all()
 
-         then:
+        then:
         all.size() == 1
-        all.first().name == "myProduct"
+        all.first().name == 'myproduct'
     }
 
-     def "check if saving takes effect"() {
+    def "adding a product will generate a new id"() {
         setup:
-        def id = store.save(myProduct)
+        store.save(new Product(name: "myproduct"))
 
-         expect:
-        myProduct.id != null
-        myProduct.id == id
+        when:
+        def all = store.all()
+
+        then:
+        all.first().id != null
     }
 
-     def "check if deleting takes effect"() {
+    def "deleting a product will remove it from the list"() {
         setup:
-        def id = store.save(myProduct)
+        store.save(p)
 
-         when:
-        store.delete(id)
+        when:
+        store.delete("1")
+        def all= store.all()
 
-         then:
-        !store.all().contains(myProduct)
+        then:
+        all.contains(p) == false
     }
 
-     def "check if updating takes effect"() {
+    def "modifying a product will change it in the list"() {
+        store.save(p)
+        Product newProduct = new Product(
+                id: 1,
+                name: "myproduct updated",
+                description: "new product",
+                price: 2.50,
+                idealTemperature: 10)
         setup:
-        def id = store.save(myProduct)
+        store.update("1", newProduct)
 
-         when:
-        Product myUpdatedProduct = new Product(name: "myUpdatedProduct")
-        println(id);
-        store.update(id, myUpdatedProduct)
+        when:
+        def proInStore = store.getByID("1")
 
-         then:
-        myProduct != myUpdatedProduct
+        then:
+        proInStore == newProduct
+
     }
 
-     def "Throw a NotExistingProductException if we get the id which it doesn't exist"() {
+    def "getting a product by its id will throw a NotExistingProductException if it does not exits"() {
         setup:
-        def id = myProduct.id
-
-         when:
-        store.getByID(id)
-
-         then:
+        store.save(p)
+        when:
+        def all = store.all()
+        store.getByID("2")
+        then:
+        all.size() == 1
         thrown NotExistingProductException
     }
 
-     def "get ID if it exist"() {
-        setup:
-        def id = store.save(myProduct)
-
-         when:
-        def gettedProduct = store.getByID(id)
-
-         then:
-        myProduct == gettedProduct
+    def "getting a product by its id will return it if it does exist"() {
+        store.save(p)
+        expect:
+        store.getByID("1").name=='myproduct'
     }
 
-   
 }

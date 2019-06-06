@@ -22,7 +22,7 @@ class StudentControllerSpec extends Specification {
 
         expect:
         response.status == HttpStatus.OK
-        response.body()[0].firstName == 'S¨¦bastien'
+        response.body()[0].firstName == 'SÃ©bastien'
         response.body()[0].lastName == 'Gadot'
 
     }
