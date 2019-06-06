@@ -1,25 +1,23 @@
 package gl51.project.store
 
+import io.micronaut.http.annotation.*
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Body
-import io.micronaut.http.annotation.Controller
-import io.micronaut.http.annotation.Delete
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Patch
-import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Put
-import io.micronaut.http.HttpStatus
 
 
-import io.micronaut.http.HttpStatus
-
-
-@Controller("/store/product")
+@Controller("/products")
 class ProductController {
-
     MemoryProductStorage storage = new MemoryProductStorage()
+
+    @Post("/")
+    String create(@Body Product p){
+        //HttpStatus.OK
+        storage.save(p)
+    }
 
     @Get("/")
     List<Product> index() {
+        HttpStatus.OK
         storage.all()
     }
 
@@ -33,30 +31,25 @@ class ProductController {
         }
     }
 
-    @Post("/")
-    String create(@Body Product p) {
-        storage.save(p)
-    }
-
-    @Patch("/{id}")
-    HttpStatus update(String id, @Body Product p) {
+    @Put("/{id}")
+    void update(@Body Product p,@Body String id){
         try {
             storage.update(id, p)
             HttpStatus.OK
         }
-        catch(NotExistingProductException e){
+        catch(NotExistingProductException e) {
             HttpStatus.NOT_FOUND
         }
     }
 
     @Delete("/{id}")
-    String delete(String id) {
+    void delete(String id) {
         try {
             storage.delete(id)
             HttpStatus.OK
-        }
-        catch(NotExistingProductException e){
+        } catch (NotExistingProductException  e) {
             HttpStatus.NOT_FOUND
         }
     }
+
 }
