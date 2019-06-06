@@ -12,13 +12,16 @@ class MemoryProductStorage implements  ProductStorage {
     }
 
     @Override
-    void update(String id, Product p) {
-        Product product = this.getByID(id)
-        int indexOfProduct = productList.indexOf(product)
-
-         productList.add(indexOfProduct,p)
-         productList.remove(indexOfProduct+1)
-    }
+ 	void update(String id, Product p) {
+        for(int i=0;i<products.size();i++)
+        {
+            if(products[i].id==id)
+            {
+                p.id = id
+                products[i] = p
+            }
+        }
+	}
 
     @Override
     Product getByID(String id) {

@@ -19,11 +19,6 @@ class ProductControllerSpec extends Specification {
     @Shared @AutoCleanup RxHttpClient client = embeddedServer.applicationContext.createBean(RxHttpClient, embeddedServer.getURL())
 
     def newProduct = new Product(name: "One")
-//
-//    def setup() {
-//        someProducts.each {  save(it)}
-//    }
-
 
     void "test empty index"() {
         given:
@@ -52,7 +47,7 @@ class ProductControllerSpec extends Specification {
         "aaa" | "bbb" | 0.0 | 123000
     }
 
-    void "update one product"() {
+    void "test update"() {
         setup:
         Product oldProduct = new Product(name: name, description: description, price: price, idealTemperature: idealTemperature)
         Product newProduct = new Product(name: name1, description: description1, price: price1, idealTemperature: idealTemperature1)
@@ -70,10 +65,10 @@ class ProductControllerSpec extends Specification {
 
         where:
         name  | description | price | idealTemperature | name1 | description1 | price1  | idealTemperature1
-        "aaa" | "bbb"       | 0.0   | 123000           | "ccc" | "ddd"        | 56465.3 | 64351568
+        "aaa" | "bbb"       | 0.0   | 123000           | "ccc" | "ddd"        | 56465.3 | 643515
     }
 
-    void "delete one product"() {
+    void "test delete"() {
         setup:
         Product newProduct = new Product(name: name, description: description, price: price, idealTemperature: idealTemperature)
         String id = client.toBlocking().retrieve(HttpRequest.POST('/products', newProduct))
