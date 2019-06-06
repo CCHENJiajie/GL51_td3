@@ -6,7 +6,7 @@ import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Patch
 import io.micronaut.http.annotation.Post
-import store.exceptions.NotExistingProductException
+import store.NotExistingProductException
 
 
 import io.micronaut.http.HttpStatus
