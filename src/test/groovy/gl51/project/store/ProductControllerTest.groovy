@@ -13,59 +13,77 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 
-class ProductControllerTest extends Specification {
+class ProductControllerSpec extends Specification {
 
     @Shared @AutoCleanup EmbeddedServer embeddedServer = ApplicationContext.run(EmbeddedServer)
     @Shared @AutoCleanup RxHttpClient client = embeddedServer.applicationContext.createBean(RxHttpClient, embeddedServer.getURL())
 
+    def newProduct = new Product(name: "One")
 
-    void "test index"() {
+
+    void "test empty "() {
         given:
-        List<Product> products = client.toBlocking().retrieve(HttpRequest.GET('/store/product'), Argument.listOf(Product).type)
+        List<Product> response = client.toBlocking().retrieve(HttpRequest.GET('/products'), Argument.listOf(Product).type)
 
         expect:
-        products == []
+        response ==[]
     }
 
-    void "test create "() {
+    void "test create"() {
         setup:
-        Product sentProduct = new Product(name: "myProduct1", description: "product1", price: 1, idealTemperature: 1)
+        Product newProduct = new Product(name: name, description: description, price: price, idealTemperature: idealTemperature)
 
         when:
-        String id = client.toBlocking().retrieve(HttpRequest.POST('/store/product', sentProduct))
-        Product getProduct = client.toBlocking().retrieve(HttpRequest.GET('/store/product/'+id), Argument.of(Product).type)
+        String id = client.toBlocking().retrieve(HttpRequest.POST('/products', newProduct))
+        Product findProduct = client.toBlocking().retrieve(HttpRequest.GET('/products/'+id), Argument.of(Product).type)
 
         then:
-        id != ""
-        getProduct != null
-        getProduct.equals(sentProduct)
+        findProduct.name ==newProduct.name
+        findProduct.description == newProduct.description
+        findProduct.price == newProduct.price
+        findProduct.idealTemperature == newProduct.idealTemperature
+
+        where:
+        name | description | price | idealTemperature
+        "aaa" | "bbb" | 0.0 | 123000
     }
 
     void "test update"() {
         setup:
-        String id = client.toBlocking().retrieve(HttpRequest.POST('/store/product', new Product(name: "myProduct1", description: "product1", price: 1, idealTemperature: 1)))
+        Product oldProduct = new Product(name: name, description: description, price: price, idealTemperature: idealTemperature)
+        Product newProduct = new Product(name: name1, description: description1, price: price1, idealTemperature: idealTemperature1)
+        String id = client.toBlocking().retrieve(HttpRequest.POST('/products', oldProduct))
 
         when:
-        Product p = new Product(name: "myProduct2", description: "product2", price: 2, idealTemperature: 2)
-        HttpStatus status = client.toBlocking().retrieve(HttpRequest.PATCH('/store/product/'+id, p), Argument.of(HttpStatus).type)
-        Product afterProduct = client.toBlocking().retrieve(HttpRequest.GET('/store/product/'+id), Argument.of(Product).type)
+        client.toBlocking().retrieve(HttpRequest.PUT('/products/' + id, newProduct), Argument.of(HttpStatus).type)
+        Product updatedProduct = client.toBlocking().retrieve(HttpRequest.GET('/products/' + id), Argument.of(Product).type)
 
         then:
-        status.equals(HttpStatus.OK)
-        p.equals(afterProduct)
+        updatedProduct.description == newProduct.description
+        updatedProduct.price == newProduct.price
+        updatedProduct.name == newProduct.name
+        updatedProduct.idealTemperature == newProduct.idealTemperature
+
+        where:
+        name  | description | price | idealTemperature | name1 | description1 | price1  | idealTemperature1
+        "aaa" | "bbb"       | 0.0   | 123000           | "ccc" | "ddd"        | 56465.3 | 64351568
     }
 
     void "test delete"() {
         setup:
-        String id = client.toBlocking().retrieve(HttpRequest.POST('/store/product', new Product(name: "myProduct1", description: "product1", price: 1, idealTemperature: 1)))
+        Product newProduct = new Product(name: name, description: description, price: price, idealTemperature: idealTemperature)
+        String id = client.toBlocking().retrieve(HttpRequest.POST('/products', newProduct))
 
         when:
-        HttpStatus status = client.toBlocking().retrieve(HttpRequest.DELETE('/store/product/'+id), Argument.of(HttpStatus).type)
-        Product p = client.toBlocking().retrieve(HttpRequest.GET('/store/product/'+id), Argument.of(Product).type)
+        client.toBlocking().retrieve(HttpRequest.DELETE('/products/'+ id))
+        Product product = client.toBlocking().retrieve(HttpRequest.GET('/product/' + id), Argument.of(Product).type)
 
         then:
-        status.equals(HttpStatus.OK)
         thrown HttpClientResponseException
-        p == null
+
+        where:
+        name  | description | price | idealTemperature
+        "aaa" | "bbb"       | 0.0   | 123000
     }
+
 }
