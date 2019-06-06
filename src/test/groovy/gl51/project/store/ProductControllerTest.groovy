@@ -1,89 +1,71 @@
 package gl51.project.store
 
-import io.micronaut.runtime.server.EmbeddedServer
-import io.micronaut.http.client.RxHttpClient
-import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
+import io.micronaut.runtime.server.EmbeddedServer
+import io.micronaut.http.client.RxHttpClient
 import io.micronaut.http.HttpRequest
-import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
+class ProductControllerTest extends Specification {
+  @Shared @AutoCleanup EmbeddedServer embeddedServer = ApplicationContext.run(EmbeddedServer)
+  @Shared @AutoCleanup RxHttpClient client = embeddedServer.applicationContext.createBean(RxHttpClient, embeddedServer.getURL())
 
-class ProductControllerSpec extends Specification {
+  Product testProduct = new Product(name: "product", description: "aaa", price: 0.0, idealTemperature: 0.0)
 
-    @Shared @AutoCleanup EmbeddedServer embeddedServer = ApplicationContext.run(EmbeddedServer)
-    @Shared @AutoCleanup RxHttpClient client = embeddedServer.applicationContext.createBean(RxHttpClient, embeddedServer.getURL())
+  void "test empty"() {
+      given:
+      def productList = client.toBlocking().retrieve(HttpRequest.GET("/store/products"), Argument.listOf(Product).type)
 
-    def newProduct = new Product(name: "One")
+      expect:
+      productList == []
+  }
 
 
-    void "test empty "() {
-        given:
-        List<Product> response = client.toBlocking().retrieve(HttpRequest.GET('/products'), Argument.listOf(Product).type)
+  void "test create" () {
+      setup:
+      def id = client.toBlocking().retrieve(HttpRequest.POST("/store/products", testProduct))
 
-        expect:
-        response ==[]
-    }
+      when:
+      def retrievedProduct = client.toBlocking().retrieve(HttpRequest.GET("/store/products/"+id), Argument.of(Product).type)
 
-    void "test create"() {
-        setup:
-        Product newProduct = new Product(name: name, description: description, price: price, idealTemperature: idealTemperature)
+      then:
+      retrievedProduct.name == testProduct.name
+      retrievedProduct.description == testProduct.description
+      retrievedProduct.price == testProduct.price
+      retrievedProduct.idealTemperature == testProduct.idealTemperature
+  }
 
-        when:
-        String id = client.toBlocking().retrieve(HttpRequest.POST('/products', newProduct))
-        Product findProduct = client.toBlocking().retrieve(HttpRequest.GET('/products/'+id), Argument.of(Product).type)
+  void "test update" () {
+      setup:
+      def id = client.toBlocking().retrieve(HttpRequest.POST("/store/products", testProduct))
+      Product newProduct = new Product(name: "product2", description: "desc2", price: 0.1, idealTemperature: 0.1)
 
-        then:
-        findProduct.name ==newProduct.name
-        findProduct.description == newProduct.description
-        findProduct.price == newProduct.price
-        findProduct.idealTemperature == newProduct.idealTemperature
+      when:
+      client.toBlocking().retrieve(HttpRequest.PUT("/store/products/"+id, newProduct), Argument.of(HttpStatus).type)
+      def productList = client.toBlocking().retrieve(HttpRequest.GET("/store/products"), Argument.listOf(Product).type)
 
-        where:
-        name | description | price | idealTemperature
-        "aaa" | "bbb" | 0.0 | 123000
-    }
+      then:
+      productList.last().name == newProduct.name
+      productList.last().description == newProduct.description
+      productList.last().price == newProduct.price
+      productList.last().idealTemperature == newProduct.idealTemperature
+  }
 
-    void "test update"() {
-        setup:
-        Product oldProduct = new Product(name: name, description: description, price: price, idealTemperature: idealTemperature)
-        Product newProduct = new Product(name: name1, description: description1, price: price1, idealTemperature: idealTemperature1)
-        String id = client.toBlocking().retrieve(HttpRequest.POST('/products', oldProduct))
+  void "test delete" () {
+    setup:
+    def id = client.toBlocking().retrieve(HttpRequest.POST("/store/products", testProduct))
+    def productList = client.toBlocking().retrieve(HttpRequest.GET("/store/products"), Argument.listOf(Product).type)
+    def size = productList.size()
 
-        when:
-        client.toBlocking().retrieve(HttpRequest.PUT('/products/' + id, newProduct), Argument.of(HttpStatus).type)
-        Product updatedProduct = client.toBlocking().retrieve(HttpRequest.GET('/products/' + id), Argument.of(Product).type)
+    when:
+    client.toBlocking().retrieve(HttpRequest.DELETE("/store/products/"+id), Argument.of(HttpStatus).type)
+    productList = client.toBlocking().retrieve(HttpRequest.GET("/store/products"), Argument.listOf(Product).type)
 
-        then:
-        updatedProduct.description == newProduct.description
-        updatedProduct.price == newProduct.price
-        updatedProduct.name == newProduct.name
-        updatedProduct.idealTemperature == newProduct.idealTemperature
-
-        where:
-        name  | description | price | idealTemperature | name1 | description1 | price1  | idealTemperature1
-        "aaa" | "bbb"       | 0.0   | 123000           | "ccc" | "ddd"        | 56465.3 | 64351568
-    }
-
-    void "test delete"() {
-        setup:
-        Product newProduct = new Product(name: name, description: description, price: price, idealTemperature: idealTemperature)
-        String id = client.toBlocking().retrieve(HttpRequest.POST('/products', newProduct))
-
-        when:
-        client.toBlocking().retrieve(HttpRequest.DELETE('/products/'+ id))
-        Product product = client.toBlocking().retrieve(HttpRequest.GET('/product/' + id), Argument.of(Product).type)
-
-        then:
-        thrown HttpClientResponseException
-
-        where:
-        name  | description | price | idealTemperature
-        "aaa" | "bbb"       | 0.0   | 123000
-    }
-
+    then:
+    size == productList.size()+1
+  }
 }
